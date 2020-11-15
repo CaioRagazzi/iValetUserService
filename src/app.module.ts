@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
 import { USerModule } from './Users/user.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { UserCompanyModule } from './user-company/user-company.module';
 
 @Module({
-  imports: [
-    USerModule, MongooseModule.forRoot(process.env.MONGOURL)
-  ],
+  imports: [USerModule, UserCompanyModule],
   controllers: [],
   providers: [],
   exports: []

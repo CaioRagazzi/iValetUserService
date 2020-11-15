@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { UserInsertDto } from './dtos/user-insert.dto';
 import { UserUpdateDto } from './dtos/user-update.dto';
-import { User, UserDocument } from './user.schema';
+import { User } from './user.entity';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -24,13 +24,13 @@ export class UserController {
     try {
       const userRet = await this.userService.create(user);
       return userRet;
-    } catch (error) {
+    } catch (error) {      
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get(':userId')
-  async GetById(@Param('userId') userId: number): Promise<UserDocument> {
+  async GetById(@Param('userId') userId: number): Promise<User> {
     try {      
       const userRet = await this.userService.findOneById(userId);
       
@@ -79,20 +79,4 @@ export class UserController {
       }
     }
   }
-
-  // @Post('SendEmailForgotPassword')
-  // async sendEmailForgotPassword(
-  //   @Body() message: SendEmailForgotPasswordDto,
-  // ): Promise<void> {
-  //   try {
-  //     const userRet = await this.userService.findOneByEmail(message.to);
-  //     if (userRet) {
-  //       this.userService.sendEmailForgotPassword(message.to, userRet.id);
-  //     } else {
-  //       throw new HttpException('Error sending email', HttpStatus.BAD_REQUEST);
-  //     }
-  //   } catch (error) {
-  //     throw new HttpException(error.sqlMessage, HttpStatus.BAD_REQUEST);
-  //   }
-  // }
 }

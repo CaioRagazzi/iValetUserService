@@ -1,5 +1,5 @@
 
-import { User } from './user.schema';
+import { User } from './user.entity';
 
 export const usersProviders = [
   {

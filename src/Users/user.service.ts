@@ -1,51 +1,50 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserInsertDto } from './dtos/user-insert.dto';
-import { User, UserDocument } from './user.schema';
-import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
+import { genSaltSync, hashSync } from 'bcryptjs';
 import { UserUpdateDto } from './dtos/user-update.dto';
 import { AES, enc } from 'crypto-js';
-import {
-  getYear,
-  getMonth,
-  getDate,
-  getHours,
-  getMinutes,
-  differenceInMinutes,
-} from 'date-fns';
-import { Model } from 'mongoose';
-import { id } from 'date-fns/locale';
+import { differenceInMinutes } from 'date-fns';
+import { User } from './user.entity';
+import { UserCompanyService } from 'src/user-company/user-company.service';
+import { UserCompany } from 'src/user-company/user-company.entity';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userRepository: Model<UserDocument>) {}
+  constructor(@Inject('USER_REPOSITORY') private userRepository: typeof User, private userCompanyService: UserCompanyService) {}
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.findAll();
   }
 
   async create(userDto: UserInsertDto): Promise<User> {
+    const duplicateUser = await this.userRepository.findOne({where: { email: userDto.email} })
+
+    if (duplicateUser) {
+      throw new Error(`User with email ${userDto.email} already exists`);
+    }
+
     const user = await this.userRepository.create<User>({
       name: userDto.name,
       email: userDto.email,
       password: this.hashPassword(userDto.password),
       perfil: userDto.perfil,
-      companyId: userDto.companyId
     });
 
     const savedUser = await user.save();
 
+    this.userCompanyService.create(savedUser.id, userDto.companyId);
+
     return savedUser;
   }
 
-  async findOneById(userId: number): Promise<UserDocument> {
-    const user = await this.userRepository.findById(userId);
+  async findOneById(userId: number): Promise<User> {
+    const user = await this.userRepository.findByPk(userId, {include: [UserCompany]});
     return user;
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    const user = await this.userRepository.findOne({ email: email });
-    
+    const user = await this.userRepository.findOne({ where: { email } });
+
     return user;
   }
 
@@ -74,7 +73,7 @@ export class UserService {
       throw new Error('Session Expired');
     }
 
-    const userRet = await this.userRepository.findById(arr[0]);
+    const userRet = await this.userRepository.findByPk(arr[0]);
 
     if (!userRet || userRet === null) {
       throw new Error(`User with id ${arr[0]} not found`);
@@ -129,7 +128,7 @@ export class UserService {
   //     process.env.SECRET_CRYPTO,
   //   )}</p>
   //   <p>Atenciosamente,</p>
-  //   <p>Equipe iValet</p> 
+  //   <p>Equipe iValet</p>
   //   `;
   //   const subject = 'Forgot password';
 
