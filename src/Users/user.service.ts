@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserInsertDto } from './dtos/user-insert.dto';
+import { UserInsertRequestDto } from './dtos/user-insert-request.dto';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { UserUpdateDto } from './dtos/user-update.dto';
 import { AES, enc } from 'crypto-js';
@@ -10,14 +10,19 @@ import { UserCompany } from 'src/user-company/user-company.entity';
 
 @Injectable()
 export class UserService {
-  constructor(@Inject('USER_REPOSITORY') private userRepository: typeof User, private userCompanyService: UserCompanyService) {}
+  constructor(
+    @Inject('USER_REPOSITORY') private userRepository: typeof User,
+    private userCompanyService: UserCompanyService,
+  ) {}
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAll();
   }
 
-  async create(userDto: UserInsertDto): Promise<User> {
-    const duplicateUser = await this.userRepository.findOne({where: { email: userDto.email} })
+  async create(userDto: UserInsertRequestDto): Promise<User> {
+    const duplicateUser = await this.userRepository.findOne({
+      where: { email: userDto.email },
+    });
 
     if (duplicateUser) {
       throw new Error(`User with email ${userDto.email} already exists`);
@@ -38,12 +43,18 @@ export class UserService {
   }
 
   async findOneById(userId: number): Promise<User> {
-    const user = await this.userRepository.findByPk(userId, {include: [UserCompany]});
+    const user = await this.userRepository.findByPk(userId, {
+      include: [UserCompany],
+      attributes: { exclude: ['password'] },
+    });
     return user;
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email },
+      include: [UserCompany]
+    });
 
     return user;
   }
@@ -56,10 +67,13 @@ export class UserService {
     }
 
     user.name = userDto.name;
+    user.email = userDto.email;
     user.password = this.hashPassword(userDto.password);
     user.perfil = userDto.perfil;
 
-    const updatedUser = await user.save();
+    const savedUser = await user.save();
+
+    const updatedUser = await this.findOneById(savedUser.id);
 
     return updatedUser;
   }

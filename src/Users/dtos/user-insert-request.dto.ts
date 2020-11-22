@@ -5,9 +5,10 @@ import {
   IsString,
   MinLength,
   IsArray,
+  IsOptional,
 } from 'class-validator';
 
-export class UserInsertDto {
+export class UserInsertRequestDto {
   @IsNotEmpty()
   @IsString()
   name: string;
@@ -25,6 +26,6 @@ export class UserInsertDto {
   perfil: number;
 
   @IsArray()
-  @IsNotEmpty()
+  @IsOptional()
   companyId: number[];
 }

@@ -1,6 +1,5 @@
-import { BelongsTo, Column, HasMany, Model, Table } from 'sequelize-typescript';
+import { Column, HasMany, Model, Table } from 'sequelize-typescript';
 import { UserCompany } from 'src/user-company/user-company.entity';
-import { usersProviders } from './user.providers';
 
 @Table
 export class User extends Model<User> {
@@ -17,5 +16,5 @@ export class User extends Model<User> {
   perfil: number;
 
   @HasMany(() => UserCompany)
-  companies: UserCompany;
+  companies: UserCompany[];
 }
