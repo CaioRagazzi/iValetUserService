@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsString,
   MinLength,
-  IsArray,
   IsOptional,
 } from 'class-validator';
 
@@ -25,7 +24,7 @@ export class UserInsertRequestDto {
   @IsNotEmpty()
   perfil: number;
 
-  @IsArray()
+  @IsString()
   @IsOptional()
-  companyId: number[];
+  companyName: string;
 }

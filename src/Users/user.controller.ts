@@ -20,10 +20,10 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Post()
+  @Post('createUserCompany')
   async create(@Body() user: UserInsertRequestDto): Promise<UserInsertResponseDto> {
     try {
-      const userCreated = await this.userService.create(user);
+      const userCreated = await this.userService.createUserCompany(user);
       const userDtoResponse = new UserInsertResponseDto()
       userDtoResponse.email = userCreated.email;
       userDtoResponse.name = userCreated.name;

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpService, Inject, Injectable } from '@nestjs/common';
 import { UserInsertRequestDto } from './dtos/user-insert-request.dto';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { UserUpdateDto } from './dtos/user-update.dto';
@@ -13,13 +13,14 @@ export class UserService {
   constructor(
     @Inject('USER_REPOSITORY') private userRepository: typeof User,
     private userCompanyService: UserCompanyService,
+    private httpService: HttpService,
   ) {}
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAll();
   }
 
-  async create(userDto: UserInsertRequestDto): Promise<User> {
+  async createUserCompany(userDto: UserInsertRequestDto): Promise<User> {
     const duplicateUser = await this.userRepository.findOne({
       where: { email: userDto.email },
     });
@@ -35,11 +36,18 @@ export class UserService {
       perfil: userDto.perfil,
     });
 
-    const savedUser = await user.save();
+    const companyIdArray: number[] = [];
+    try {
+      const companyId = await this.createCompany(userDto.companyName);
+      companyIdArray.push(companyId);
+    } catch (error) {
+      user.destroy();
+      throw new Error(error);
+    }
 
-    this.userCompanyService.create(savedUser.id, userDto.companyId);
+    this.userCompanyService.create(user.id, companyIdArray);
 
-    return savedUser;
+    return user;
   }
 
   async findOneById(userId: number): Promise<User> {
@@ -53,7 +61,7 @@ export class UserService {
   async findOneByEmail(email: string): Promise<User | undefined> {
     const user = await this.userRepository.findOne({
       where: { email },
-      include: [UserCompany]
+      include: [UserCompany],
     });
 
     return user;
@@ -122,30 +130,20 @@ export class UserService {
     }
   }
 
-  // async sendEmailForgotPassword(to: string, userId: number): Promise<void> {
-  //   const currentDate = new Date();
-  //   const year = getYear(currentDate);
-  //   const month = getMonth(currentDate);
-  //   const day = getDate(currentDate);
-  //   const hour = getHours(currentDate);
-  //   const minutes = getMinutes(currentDate);
+  async createCompany(companyName: string) {
+    let companyId: number;
+    await this.httpService
+      .post('http://localhost:3002/company', {
+        name: companyName,
+      })
+      .toPromise()
+      .then(res => {
+        companyId = res.data.id;
+      })
+      .catch(err => {
+        throw new Error(err.response.data);
+      });
 
-  //   const encriptMessage = `${userId}|${year}|${month}|${day}|${hour}|${minutes}`;
-
-  //   const user = await this.findOneById(userId);
-
-  //   const text = `
-  //   <p>Olá <b>${user.name},</b></p>
-  //   <p>Você solicitou o restart de sua senha, favor clicar no link abaixo e realizar a alteração:</p>
-  //   <p>http://ragazzitech.caioragazzi.com:82/resetpassword?hash=${AES.encrypt(
-  //     encriptMessage,
-  //     process.env.SECRET_CRYPTO,
-  //   )}</p>
-  //   <p>Atenciosamente,</p>
-  //   <p>Equipe iValet</p>
-  //   `;
-  //   const subject = 'Forgot password';
-
-  //   this.sendEmailService.sendEmail(to, subject, text.toString());
-  // }
+    return companyId;
+  }
 }
