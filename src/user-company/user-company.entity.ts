@@ -1,11 +1,17 @@
-import { Column, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { User } from 'src/Users/user.entity';
 
-@Table
-export class UserCompany extends Model<UserCompany> {
-  @ForeignKey(() => User)
+@Entity()
+export class UserCompany {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(
+    () => User,
+    user => user.companies,
+  )
   userId: User[];
 
-  @Column
+  @Column()
   companyId: number;
 }

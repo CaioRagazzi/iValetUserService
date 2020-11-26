@@ -1,20 +1,23 @@
-import { Column, HasMany, Model, Table } from 'sequelize-typescript';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { UserCompany } from 'src/user-company/user-company.entity';
 
-@Table
-export class User extends Model<User> {
-  @Column
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 150 })
   name: string;
 
-  @Column
+  @Column()
   password: string;
 
   @Column({unique: true})
   email: string;
 
-  @Column
+  @Column()
   perfil: number;
 
-  @HasMany(() => UserCompany)
+  @OneToMany(() => UserCompany, userCompany => userCompany.userId)
   companies: UserCompany[];
 }
