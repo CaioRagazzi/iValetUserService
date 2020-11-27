@@ -7,7 +7,7 @@ import {
   IsOptional,
 } from 'class-validator';
 
-export class UserInsertRequestDto {
+export class UserCompanyInsertRequestDto {
   @IsNotEmpty()
   @IsString()
   name: string;

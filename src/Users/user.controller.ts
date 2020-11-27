@@ -11,29 +11,12 @@ import {
   Patch
 } from '@nestjs/common';
 import { Company, UserGetByIdResponseDto } from './dtos/user-get-by-id-response.dto';
-import { UserInsertRequestDto } from './dtos/user-insert-request.dto';
-import { UserInsertResponseDto } from './dtos/user-insert-response.dto';
 import { UserUpdateDto } from './dtos/user-update.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
-
-  @Post('createUserCompany')
-  async create(@Body() user: UserInsertRequestDto): Promise<UserInsertResponseDto> {
-    try {
-      const userCreated = await this.userService.createUserCompany(user);
-      const userDtoResponse = new UserInsertResponseDto()
-      userDtoResponse.email = userCreated.email;
-      userDtoResponse.name = userCreated.name;
-      userDtoResponse.perfil = userCreated.perfil;
-
-      return userDtoResponse;
-    } catch (error) {      
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
-  }
 
   @Get(':userId')
   async GetById(@Param('userId') userId: number): Promise<UserGetByIdResponseDto> {

@@ -5,7 +5,7 @@ import {
     IsString,
   } from 'class-validator';
   
-  export class UserInsertResponseDto {
+  export class UserCompanyInsertResponseDto {
     @IsNotEmpty()
     @IsString()
     name: string;BelongsTo

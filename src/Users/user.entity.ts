@@ -18,6 +18,12 @@ export class User {
   @Column()
   perfil: number;
 
+  @Column()
+  createdAt: Date;
+
+  @Column()
+  updatedAt: Date;
+
   @OneToMany(() => UserCompany, userCompany => userCompany.userId)
   companies: UserCompany[];
 }
